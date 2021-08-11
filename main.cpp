@@ -16,8 +16,6 @@ std::condition_variable cv;
 class Clock {
 private:
   time_t _time;
-  time_t now;
-  tm* ltm = localtime(&now);
 public:
   Clock(){
     refresh();
@@ -30,12 +28,6 @@ public:
     struct tm* timeinfo = localtime(&_time);
     return timeinfo;
   }
-  /*tm* tickCurrentTime(){
-    sleep(1);
-    update();
-    struct tm* timeinfo = localtime(&_time);
-    return timeinfo;
-  }*/
 void clkDisplayThread(){
   std::mutex mtx;
   std::unique_lock<std::mutex> lck(mtx);
@@ -56,7 +48,6 @@ int main(){
   initscr();
   noecho();
   Clock clock1;
-  char key;
   std::thread threadKB(asyncInputThread);
   threadKB.detach(); // 'abort signal' solved by calling detaching
   clock1.tickCurrentTime();
