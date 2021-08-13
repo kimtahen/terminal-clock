@@ -7,47 +7,17 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "./lib/includes/clock.hpp"
 
 void asyncInputThread();
-void clkDisplayThread();
 
 char keyboardInput = 'A';
 std::condition_variable cv;
-class Clock {
-private:
-  time_t _time;
-public:
-  Clock(){
-    refresh();
-  }
-  void update(){
-    time(&_time);
-  }
-  tm* currentTime(){
-    update();
-    struct tm* timeinfo = localtime(&_time);
-    return timeinfo;
-  }
-void clkDisplayThread(){
-  std::mutex mtx;
-  std::unique_lock<std::mutex> lck(mtx);
-  while(cv.wait_for(lck,std::chrono::seconds(1))==std::cv_status::timeout){
-    printw("%s",asctime(currentTime()));
-    refresh();
-  }
-}
-
-  void tickCurrentTime(){
-    std::thread threadClk([&](){clkDisplayThread();});
-    threadClk.join();
-  }
-};
-
-
 int main(){
   initscr();
   noecho();
-  Clock clock1;
+  cbreak();
+  Clock clock1(&cv);
   std::thread threadKB(asyncInputThread);
   threadKB.detach(); // 'abort signal' solved by calling detaching
   clock1.tickCurrentTime();
