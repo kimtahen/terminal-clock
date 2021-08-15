@@ -9,6 +9,7 @@
 
 #include "./lib/includes/clock.hpp"
 #include "./lib/includes/draw.hpp"
+#include "./lib/includes/winrel.hpp"
 
 void asyncInputThread();
 
@@ -19,21 +20,25 @@ int main(){
   noecho();
   start_color();
   curs_set(0);
+  //configuration
+  init_color(COLOR_CYAN,55, 150, 131);
   int yMax, xMax;
   getmaxyx(stdscr, yMax, xMax);
   WINDOW* bg = newwin(yMax,xMax,0,0);
-  WINDOW* win[6];
-  for(int i = 0; i<6; i++){
-    win[i] = newwin(5,3,1,i*3+i+1);
-  }
-  refresh(); //refresh the entire screen so that the ncurses knows that the new window was created
+  refresh();
+
+
 
   box(bg, 0, 0);
+  wrefresh(bg);
 
-  Clock clock1(&cv, win);
   std::thread threadKB(asyncInputThread);
   threadKB.detach(); // 'abort signal' solved by calling detaching
+
+  Clock clock1(&cv);
+  clock1.reloClock(yMax/2-3,xMax/2-14);
   clock1.tickCurrentTime();
+
   endwin();
 
   return 0;

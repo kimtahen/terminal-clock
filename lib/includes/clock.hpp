@@ -3,36 +3,34 @@
 
 #include <iostream>
 #include <ncurses.h>
+typedef struct {
+  int row;
+  int col;
+}term;
 
 class Clock {
 private:
   time_t _time;
-  std::condition_variable* _cv;
-  WINDOW** win;
   struct tm* timeinfo;
+
+  std::condition_variable* _cv;
+
+  WINDOW* win[8];
+  term crit = {1,1};
+  term ele_pos[8];
   int prevhour, prevmin, prevsec;
+
 public:
-  Clock(std::condition_variable* cv, WINDOW* w[]){
-    time(&_time);
-    timeinfo = localtime(&_time);
-    prevhour = timeinfo->tm_hour;
-    prevmin = timeinfo->tm_min;
-    prevsec = timeinfo->tm_sec;
-    this->_cv = cv;
-    this->win = w;
-  }
-  void update(){
-    time(&_time);
-    prevhour = timeinfo->tm_hour;
-    prevmin = timeinfo->tm_min;
-    prevsec = timeinfo->tm_sec;
-    timeinfo = localtime(&_time);
-  }
+  Clock(std::condition_variable* cv);
+  void update();
+  void reloClock(int x, int y);
   tm* currentTime();
 
   void clkDisplayThread();
 
   void tickCurrentTime();
+
+
 };
 
 
