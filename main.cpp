@@ -11,14 +11,17 @@
 #include "./lib/includes/draw.hpp"
 #include "./lib/includes/winrel.hpp"
 
-void asyncInputThread();
+void asyncInputThread(WINDOW* win);
 
-char keyboardInput = 'A';
+int keyboardInput;
+int currentMenu = 0;
 std::condition_variable cv;
+std::condition_variable menu;
 int main(){
   initscr();
   noecho();
   start_color();
+  cbreak();
   curs_set(0);
   //configuration
   init_color(COLOR_CYAN,55, 150, 131);
@@ -27,28 +30,43 @@ int main(){
   WINDOW* bg = newwin(yMax,xMax,0,0);
   refresh();
 
-
-
   box(bg, 0, 0);
   wrefresh(bg);
 
-  std::thread threadKB(asyncInputThread);
+  std::thread threadKB(asyncInputThread, bg);
   threadKB.detach(); // 'abort signal' solved by calling detaching
-
-  Clock clock1(&cv);
+  Clock clock1(&cv, &menu, &currentMenu);
   clock1.reloClock(yMax/2-3,xMax/2-14);
   clock1.tickCurrentTime();
-
   endwin();
 
   return 0;
 }
 
-void asyncInputThread(){
+void asyncInputThread(WINDOW* win){
   while(1){
     keyboardInput = getch();
-    if(keyboardInput == 'x'){
-      cv.notify_all();
+    switch(keyboardInput){
+      case 120:
+        cv.notify_all();
+        break;
+      //up
+      case 107:
+        menu.notify_all();
+        break;
+      //down
+      case 106:
+        break;
+      //right
+      case 108:
+        currentMenu++;
+        cv.notify_all();
+        break;
+      //left
+      case 104:
+        currentMenu--;
+        cv.notify_all();
+        break;
     }
   }
 
