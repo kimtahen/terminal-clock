@@ -15,7 +15,10 @@ void asyncInputThread(WINDOW* win);
 
 int keyboardInput;
 int currentMenu = 0;
+int exitFlag = 0;
+//cv for terminating each thread
 std::condition_variable cv;
+//menu for rotating menu
 std::condition_variable menu;
 int main(){
   initscr();
@@ -24,19 +27,19 @@ int main(){
   cbreak();
   curs_set(0);
   //configuration
-  init_color(COLOR_CYAN,55, 150, 131);
   int yMax, xMax;
   getmaxyx(stdscr, yMax, xMax);
   WINDOW* bg = newwin(yMax,xMax,0,0);
   refresh();
-
   box(bg, 0, 0);
   wrefresh(bg);
 
+  //keyboardInput
   std::thread threadKB(asyncInputThread, bg);
   threadKB.detach(); // 'abort signal' solved by calling detaching
-  Clock clock1(&cv, &menu, &currentMenu);
-  clock1.reloClock(yMax/2-3,xMax/2-14);
+
+  //clock start
+  Clock clock1(&cv, &menu, &currentMenu, &exitFlag);
   clock1.tickCurrentTime();
   endwin();
 
@@ -47,7 +50,10 @@ void asyncInputThread(WINDOW* win){
   while(1){
     keyboardInput = getch();
     switch(keyboardInput){
+      //terminate the program
+      //terminate procedure : set exitflag to 1 -> call cv.notify_all() -> the running thread exits from current state -> it calls menu.notify_all() -> the waiting threads awakened and because of the exitFlag it breaks the while loop -> all threads are terminated
       case 120:
+        exitFlag = 1;
         cv.notify_all();
         break;
       //up

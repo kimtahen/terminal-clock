@@ -4,10 +4,8 @@
 #include <iostream>
 #include <ncurses.h>
 #include <mutex>
-typedef struct {
-  int row;
-  int col;
-}term;
+#include "display.hpp"
+#include "draw.hpp"
 
 class Clock {
 private:
@@ -16,22 +14,24 @@ private:
   std::condition_variable* _cv;
   std::condition_variable* _menu;
   int* currentMenu;
+  int* exitFlag;
+  int yMax, xMax;
 
   std::mutex mtx;
 
-  WINDOW* win[8];
-  term crit = {1,1};
-  term ele_pos[8];
+  Draw d;
+  Display dis;
+
   int prevhour, prevmin, prevsec;
 
 public:
-  Clock(std::condition_variable* cv, std::condition_variable* menu, int* currentMenu);
+  Clock(std::condition_variable* cv, std::condition_variable* menu, int* currentMenu, int* exitFlag);
   void update();
-  void reloClock(int x, int y);
   tm* currentTime();
 
-  void clkDisplayThread();
+  void clkThread();
   void stwThread();
+  void timThread();
 
   void tickCurrentTime();
 

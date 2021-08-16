@@ -8,6 +8,9 @@ void arr_cp(int from[][3], int to[][3]){
 Draw::Draw(){
   init_pair(1,COLOR_CYAN, COLOR_CYAN);
   init_pair(2,COLOR_BLUE, COLOR_BLUE);
+  init_pair(3,COLOR_GREEN, COLOR_GREEN);
+  init_pair(4,COLOR_WHITE, COLOR_WHITE);
+
 }
 void Draw::fgArray(int t, int tmp[][3]){
     int f0[5][3] = {{1,1,1},{1,0,1},{1,0,1},{1,0,1},{1,1,1}};
@@ -55,26 +58,26 @@ void Draw::fgArray(int t, int tmp[][3]){
       break;
   }
 }
-void Draw::fgWindowDraw(WINDOW* win, int tmp[][3]){
+void Draw::fgWindowDraw(WINDOW* win, int tmp[][3], int color){
   werase(win);
   for(int i = 0; i<5; i++){
     for(int j=0; j<3; j++){
-      wattron(win, COLOR_PAIR(1));
+      wattron(win, COLOR_PAIR(color));
       if(tmp[i][j])
         mvwaddch(win, i, j, 'A');
-      wattroff(win,COLOR_PAIR(1));
+      wattroff(win,COLOR_PAIR(color));
     }
   }
   wrefresh(win);
 }
-void Draw::dotWindowDraw(WINDOW* win, int tmp[][1]){
+void Draw::dotWindowDraw(WINDOW* win, int tmp[][1], int color){
   werase(win);
   for(int i = 0; i<5; i++){
     for(int j=0; j<1; j++){
-      wattron(win, COLOR_PAIR(1));
+      wattron(win, COLOR_PAIR(color));
       if(tmp[i][j])
         mvwaddch(win, i, j, 'A');
-      wattroff(win,COLOR_PAIR(1));
+      wattroff(win,COLOR_PAIR(color));
     }
   }
   wrefresh(win);
