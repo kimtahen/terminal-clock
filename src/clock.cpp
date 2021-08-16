@@ -8,7 +8,7 @@
 #include "../lib/includes/display.hpp"
 
 #define NUM_FG 6
-Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, int* currentMenu, int* exitFlag){
+Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop, std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag){
   time(&_time);
   timeinfo = localtime(&_time);
   prevhour = timeinfo->tm_hour;
@@ -16,8 +16,11 @@ Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, int* cu
   prevsec = timeinfo->tm_sec;
   this->_cv = cv;
   this->_menu = menu;
+  this->_stop = stop;
+  this->_reset = reset;
   this->currentMenu = currentMenu;
   this->exitFlag = exitFlag;
+  this->pressFlag = pressFlag;
 
   getmaxyx(stdscr, yMax, xMax);
 }
@@ -57,20 +60,54 @@ void Clock::clkThread(){
     _menu->notify_all();
   }
 }
+void Clock::stwSubThread(int* on, int* counter, int* time){
+  std::unique_lock<std::mutex> lck(mtx);
+
+  while(1){
+    _stop->wait(lck);
+    *pressFlag = 0;
+
+    while(_stop->wait_for(lck,std::chrono::milliseconds(100))==std::cv_status::timeout){
+      if(*pressFlag == 115){
+        *pressFlag = 0;
+        break;
+      }
+
+      *counter += 1;
+      time[0] = *counter / 3600000;
+      time[1] = (*counter%3600000)/60000;
+      time[2] = ((*counter%3600000)%60000)/1000;
+      time[3] = ((*counter%3600000)%60000)%1000;
+      if(*on)
+        dis.displayStw(time[0],time[1],time[2],time[3]);
+    };
+    wprintw(stdscr,"out of looop");
+    wrefresh(stdscr);
+    *pressFlag = 0;
+  }
+}
 
 
 void Clock::stwThread(){
+  std::condition_variable stw;
   std::unique_lock<std::mutex> lck(mtx);
+  int on = 0;
+  int counter = 0;
+  int time[4] = {0};
+  std::thread threadStk([&](){Clock::stwSubThread(&on, &counter, time);});
+  threadStk.detach();
+
   while(1){
     while(*currentMenu%3!=1 && *exitFlag!=1){
       _menu->wait(lck);
     }
     if(*exitFlag==1) break;
-    dis.reloClock(yMax/2-3, xMax/2-19);
-
-    dis.displayStw(0,0,0,0);
+    on = 1;
+    dis.reloClock(yMax/2-3, xMax/2-21);
+    dis.displayStw(time[0],time[1],time[2],time[3]);
 
     _cv->wait(lck);
+    on = 0;
     dis.clr();
     _menu->notify_all();
   }
@@ -88,6 +125,7 @@ void Clock::timThread(){
     dis.displayTim(0,0,0);
 
     _cv->wait(lck);
+
 
     dis.clr();
 

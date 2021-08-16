@@ -13,9 +13,10 @@ Display::Display(){
   ele_pos[8]={0,28};
   ele_pos[9]={0,30};
   ele_pos[10]={0,34};
+  ele_pos[11]={0,38};
   
 
-  for(int i = 0; i<11; i++){
+  for(int i = 0; i<12; i++){
     if(i==2 || i==5 || i==8){
       win[i]=newwin(5,1,ele_pos[i].row+crit.row,ele_pos[i].col+crit.col);
     }
@@ -28,7 +29,7 @@ Display::Display(){
 
 void Display::reloClock(int row, int col){
   crit = {row, col};
-  for(int i = 0; i<11; i++){
+  for(int i = 0; i<12; i++){
     werase(win[i]);
     wrefresh(win[i]);
     mvwin(win[i], ele_pos[i].row+crit.row, ele_pos[i].col+crit.col);
@@ -86,10 +87,12 @@ void Display::displayStw(int hr, int min, int sec, int dec){
   d.fgWindowDraw(win[6],tmp,2);
   d.fgArray(sec%10, tmp);
   d.fgWindowDraw(win[7],tmp,2);
-  d.fgArray(dec/10, tmp);
+  d.fgArray(dec/100, tmp);
   d.fgWindowDraw(win[9],tmp,2);
-  d.fgArray(dec%10, tmp);
+  d.fgArray((dec%100)/10, tmp);
   d.fgWindowDraw(win[10],tmp,2);
+  d.fgArray((dec%100)%10, tmp);
+  d.fgWindowDraw(win[11],tmp,2);
 
 }
 

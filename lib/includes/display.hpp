@@ -10,9 +10,9 @@ typedef struct {
 }term;
 class Display{
 private:
-  WINDOW* win[11];
+  WINDOW* win[12];
   term crit = {1,1};
-  term ele_pos[11];
+  term ele_pos[12];
   Draw d;
 
 public:

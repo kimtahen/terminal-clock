@@ -16,10 +16,14 @@ void asyncInputThread(WINDOW* win);
 int keyboardInput;
 int currentMenu = 0;
 int exitFlag = 0;
+int pressFlag = 0;
 //cv for terminating each thread
 std::condition_variable cv;
 //menu for rotating menu
 std::condition_variable menu;
+//buttons for stopwatch
+std::condition_variable stop;
+std::condition_variable reset;
 int main(){
   initscr();
   noecho();
@@ -39,7 +43,7 @@ int main(){
   threadKB.detach(); // 'abort signal' solved by calling detaching
 
   //clock start
-  Clock clock1(&cv, &menu, &currentMenu, &exitFlag);
+  Clock clock1(&cv, &menu, &stop, &reset, &currentMenu, &exitFlag, &pressFlag);
   clock1.tickCurrentTime();
   endwin();
 
@@ -49,12 +53,20 @@ int main(){
 void asyncInputThread(WINDOW* win){
   while(1){
     keyboardInput = getch();
+    pressFlag = keyboardInput;
     switch(keyboardInput){
       //terminate the program
       //terminate procedure : set exitflag to 1 -> call cv.notify_all() -> the running thread exits from current state -> it calls menu.notify_all() -> the waiting threads awakened and because of the exitFlag it breaks the while loop -> all threads are terminated
       case 120:
         exitFlag = 1;
         cv.notify_all();
+        break;
+      case 115:
+        stop.notify_all();
+        pressFlag = 1;
+        break;
+      case 114:
+        reset.notify_all();
         break;
       //up
       case 107:
