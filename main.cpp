@@ -11,8 +11,6 @@
 #include "./lib/includes/draw.hpp"
 #include "./lib/includes/winrel.hpp"
 
-void asyncInputThread(WINDOW* win);
-
 int keyboardInput;
 int currentMenu = 0;
 int exitFlag = 0;
@@ -40,58 +38,11 @@ int main(){
   box(bg, 0, 0);
   wrefresh(bg);
 
-  //keyboardInput
-  std::thread threadKB(asyncInputThread, bg);
-  threadKB.detach(); // 'abort signal' solved by calling detaching
 
   //clock start
-  Clock clock1(&cv, &menu, &stop, &reset, &currentMenu, &exitFlag, &pressFlag, &stwCounter, &timCounter);
+  Clock clock1;
   clock1.tickCurrentTime();
   endwin();
 
   return 0;
-}
-
-void asyncInputThread(WINDOW* win){
-  while(1){
-    keyboardInput = getch();
-    pressFlag = keyboardInput;
-    switch(keyboardInput){
-      //terminate the program
-      //terminate procedure : set exitflag to 1 -> call cv.notify_all() -> the running thread exits from current state -> it calls menu.notify_all() -> the waiting threads awakened and because of the exitFlag it breaks the while loop -> all threads are terminated
-      case 120:
-        exitFlag = 1;
-        cv.notify_all();
-        break;
-      case 115:
-        stop.notify_all();
-        pressFlag = 1;
-        break;
-      case 114:
-        if(currentMenu%3==1)
-          stwCounter = 0;
-        if(currentMenu%3==2)
-          timCounter = 0;
-        break;
-      //up
-      case 107:
-        menu.notify_all();
-        break;
-      //down
-      case 106:
-        break;
-      //right
-      case 108:
-        currentMenu++;
-        cv.notify_all();
-        break;
-      //left
-      case 104:
-        currentMenu--;
-        cv.notify_all();
-        break;
-    }
-  }
-
-  return;
 }

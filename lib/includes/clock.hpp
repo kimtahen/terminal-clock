@@ -11,15 +11,18 @@ class Clock {
 private:
   time_t _time;
   struct tm* timeinfo;
-  std::condition_variable* _cv;
-  std::condition_variable* _menu;
-  std::condition_variable* _stop;
-  std::condition_variable* _reset;
-  int* currentMenu;
-  int* exitFlag;
-  int* pressFlag;
-  int* timCounter;
-  int* stwCounter;
+  std::condition_variable cv;
+  std::condition_variable menu;
+  std::condition_variable stop;
+  std::condition_variable reset;
+  int currentMenu;
+  int exitFlag;
+  int pressFlag;
+  int timCounter;
+  int stwCounter;
+  int keyboardInput;
+  int cursor;
+
   int yMax, xMax;
 
   std::mutex mtx;
@@ -30,14 +33,17 @@ private:
   int prevhour, prevmin, prevsec;
 
 public:
-  Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop,std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag, int* stwCounter, int* timCounter);
+  Clock();
   void update();
   tm* currentTime();
 
   void clkThread();
-  void stwSubThread(int* on, int* counter, int* time);
+  void stwSubThread(int* on, int* time);
   void stwThread();
+  void timSubThread();
   void timThread();
+
+  void asyncInputThread(WINDOW* win);
 
   void tickCurrentTime();
 

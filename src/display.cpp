@@ -113,7 +113,28 @@ void Display::displayTim(int hr, int min, int sec){
   d.fgWindowDraw(win[6],tmp,3);
   d.fgArray(sec%10, tmp);
   d.fgWindowDraw(win[7],tmp,3);
-
+}
+void Display::cursor(int index){
+  int tmp[5][3]={{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
+  switch(index){
+    case 0:
+      d.fgWindowDraw(win[0],tmp,3);
+      d.fgWindowDraw(win[1],tmp,3);
+      break;
+    case 1:
+      d.fgWindowDraw(win[3],tmp,3);
+      d.fgWindowDraw(win[4],tmp,3);
+      break;
+    case 2:
+      d.fgWindowDraw(win[6],tmp,3);
+      d.fgWindowDraw(win[7],tmp,3);
+      break;
+    case 3:
+      d.fgWindowDraw(win[9],tmp,3);
+      d.fgWindowDraw(win[10],tmp,3);
+      d.fgWindowDraw(win[11],tmp,3);
+      break;
+  } 
 }
 
 
