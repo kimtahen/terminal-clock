@@ -17,6 +17,8 @@ int keyboardInput;
 int currentMenu = 0;
 int exitFlag = 0;
 int pressFlag = 0;
+int stwCounter = 0;
+int timCounter = 0;
 //cv for terminating each thread
 std::condition_variable cv;
 //menu for rotating menu
@@ -43,7 +45,7 @@ int main(){
   threadKB.detach(); // 'abort signal' solved by calling detaching
 
   //clock start
-  Clock clock1(&cv, &menu, &stop, &reset, &currentMenu, &exitFlag, &pressFlag);
+  Clock clock1(&cv, &menu, &stop, &reset, &currentMenu, &exitFlag, &pressFlag, &stwCounter, &timCounter);
   clock1.tickCurrentTime();
   endwin();
 
@@ -66,7 +68,10 @@ void asyncInputThread(WINDOW* win){
         pressFlag = 1;
         break;
       case 114:
-        reset.notify_all();
+        if(currentMenu%3==1)
+          stwCounter = 0;
+        if(currentMenu%3==2)
+          timCounter = 0;
         break;
       //up
       case 107:

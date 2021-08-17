@@ -8,7 +8,7 @@
 #include "../lib/includes/display.hpp"
 
 #define NUM_FG 6
-Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop, std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag){
+Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop, std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag, int*stwCounter, int*timCounter){
   time(&_time);
   timeinfo = localtime(&_time);
   prevhour = timeinfo->tm_hour;
@@ -21,6 +21,8 @@ Clock::Clock(std::condition_variable* cv, std::condition_variable* menu, std::co
   this->currentMenu = currentMenu;
   this->exitFlag = exitFlag;
   this->pressFlag = pressFlag;
+  this->stwCounter = stwCounter;
+  this->timCounter = timCounter;
 
   getmaxyx(stdscr, yMax, xMax);
 }
@@ -64,25 +66,25 @@ void Clock::stwSubThread(int* on, int* counter, int* time){
   std::unique_lock<std::mutex> lck(mtx);
 
   while(1){
-    _stop->wait(lck);
+    do{
+      _stop->wait(lck);
+    }while(*currentMenu%3!=1);
     *pressFlag = 0;
 
-    while(_stop->wait_for(lck,std::chrono::milliseconds(100))==std::cv_status::timeout){
+    while(_stop->wait_for(lck,std::chrono::milliseconds(50))==std::cv_status::timeout || *currentMenu%3 != 1){
       if(*pressFlag == 115){
         *pressFlag = 0;
         break;
       }
 
-      *counter += 1;
-      time[0] = *counter / 3600000;
-      time[1] = (*counter%3600000)/60000;
-      time[2] = ((*counter%3600000)%60000)/1000;
-      time[3] = ((*counter%3600000)%60000)%1000;
+      *stwCounter += 1;
+      time[0] = *stwCounter / 3600000;
+      time[1] = (*stwCounter%3600000)/60000;
+      time[2] = ((*stwCounter%3600000)%60000)/1000;
+      time[3] = ((*stwCounter%3600000)%60000)%1000;
       if(*on)
         dis.displayStw(time[0],time[1],time[2],time[3]);
     };
-    wprintw(stdscr,"out of looop");
-    wrefresh(stdscr);
     *pressFlag = 0;
   }
 }
@@ -132,7 +134,6 @@ void Clock::timThread(){
     _menu->notify_all();
   }
 }
-
 void Clock::tickCurrentTime(){
   std::thread threadClk([&](){Clock::clkThread();});
   std::thread threadStk([&](){Clock::stwThread();});

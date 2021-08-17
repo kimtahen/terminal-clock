@@ -18,6 +18,8 @@ private:
   int* currentMenu;
   int* exitFlag;
   int* pressFlag;
+  int* timCounter;
+  int* stwCounter;
   int yMax, xMax;
 
   std::mutex mtx;
@@ -28,7 +30,7 @@ private:
   int prevhour, prevmin, prevsec;
 
 public:
-  Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop,std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag);
+  Clock(std::condition_variable* cv, std::condition_variable* menu, std::condition_variable* stop,std::condition_variable* reset, int* currentMenu, int* exitFlag, int* pressFlag, int* stwCounter, int* timCounter);
   void update();
   tm* currentTime();
 
