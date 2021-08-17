@@ -68,7 +68,7 @@ void Clock::stwSubThread(int* on, int* time){
     }while(currentMenu%3!=1);
     pressFlag = 0;
 
-    while(stop.wait_for(lck,std::chrono::milliseconds(50))==std::cv_status::timeout || currentMenu%3 != 1){
+    while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu%3 != 1){
       if(pressFlag == 115){
         pressFlag = 0;
         break;
@@ -133,7 +133,7 @@ void Clock::timThread(){
       if(cv.wait_for(lck,std::chrono::milliseconds(100))!=std::cv_status::timeout){
         break;
       }
-      dis.cursor(cursor); 
+      dis.cursor(cursor);
       if(cv.wait_for(lck,std::chrono::milliseconds(100))!=std::cv_status::timeout){
         break;
       }
