@@ -67,7 +67,30 @@ void Clock::stwSubThread(int* on, int* time){
       stop.wait(lck);
     }while(currentMenu%3!=1);
     pressFlag = 0;
-
+    clock_t start = clock();
+    double prevcurtime = 0;
+    int init_flag = 0;
+    /*
+    for(;;){
+      clock_t end = clock();
+      double curtime = (double)(end - start) /CLOCKS_PER_SEC;
+      if(pressFlag == 115){
+        pressFlag = 0;
+        break;
+      }
+      if((floor(prevcurtime*1000)==floor(curtime*1000)) && init_flag++){
+        continue;
+      }else{
+        time[0] = (int)curtime / 3600;
+        time[1] = ((int)curtime%3600)/60;
+        time[2] = ((int)curtime%3600)%60;
+        time[3] = (int)(curtime * 1000) %1000;
+        if(*on)
+          dis.displayStw(time[0],time[1],time[2],time[3]);
+      }
+      prevcurtime = curtime;
+    }
+    */
     while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu%3 != 1){
       if(pressFlag == 115){
         pressFlag = 0;
