@@ -59,52 +59,41 @@ void Clock::clkThread(){
     menu.notify_all();
   }
 }
-void Clock::stwSubThread(int* on, int* time){
+void Clock::stwSubThread(int* on){
   std::unique_lock<std::mutex> lck(mtx);
+  double prevcurtime = 0;
+  clock_t start;
 
   while(1){
     do{
       stop.wait(lck);
+      start=clock();
     }while(currentMenu%3!=1);
     pressFlag = 0;
-    clock_t start = clock();
-    double prevcurtime = 0;
-    int init_flag = 0;
-    /*
-    for(;;){
-      clock_t end = clock();
-      double curtime = (double)(end - start) /CLOCKS_PER_SEC;
-      if(pressFlag == 115){
-        pressFlag = 0;
-        break;
-      }
-      if((floor(prevcurtime*1000)==floor(curtime*1000)) && init_flag++){
-        continue;
-      }else{
-        time[0] = (int)curtime / 3600;
-        time[1] = ((int)curtime%3600)/60;
-        time[2] = ((int)curtime%3600)%60;
-        time[3] = (int)(curtime * 1000) %1000;
-        if(*on)
-          dis.displayStw(time[0],time[1],time[2],time[3]);
-      }
-      prevcurtime = curtime;
-    }
-    */
-    while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu%3 != 1){
+    clock_t end;
+    double curtime = prevcurtime;
+
+    while(1){
+      end = clock();
+      curtime = (double)(end - start) /CLOCKS_PER_SEC;
+
       if(pressFlag == 115){
         pressFlag = 0;
         break;
       }
 
-      stwCounter += 1;
-      time[0] = stwCounter / 3600000;
-      time[1] = (stwCounter%3600000)/60000;
-      time[2] = ((stwCounter%3600000)%60000)/1000;
-      time[3] = ((stwCounter%3600000)%60000)%1000;
+      stwTime[0] = (int)(stwAccum+curtime) / 3600;
+      stwTime[1] = ((int)(stwAccum+curtime)%3600)/60;
+      stwTime[2] = ((int)(stwAccum+curtime)%3600)%60;
+      stwTime[3] = (int)((stwAccum+curtime) * 1000) %1000;
       if(*on)
-        dis.displayStw(time[0],time[1],time[2],time[3]);
-    };
+        dis.displayStw(stwTime[0],stwTime[1],stwTime[2],stwTime[3]);
+      else
+        dis.clr();
+
+      prevcurtime = curtime;
+    }
+    stwAccum += curtime;
     pressFlag = 0;
   }
 }
@@ -114,8 +103,7 @@ void Clock::stwThread(){
   std::condition_variable stw;
   std::unique_lock<std::mutex> lck(mtx);
   int on = 0;
-  int time[4] = {0};
-  std::thread threadStk([&](){Clock::stwSubThread(&on, time);});
+  std::thread threadStk([&](){Clock::stwSubThread(&on);});
   threadStk.detach();
 
   while(1){
@@ -125,7 +113,7 @@ void Clock::stwThread(){
     if(exitFlag==1) break;
     on = 1;
     dis.reloClock(yMax/2-3, xMax/2-21);
-    dis.displayStw(time[0],time[1],time[2],time[3]);
+    dis.displayStw(stwTime[0],stwTime[1],stwTime[2],stwTime[3]);
 
     cv.wait(lck);
     on = 0;
@@ -182,12 +170,11 @@ void Clock::asyncInputThread(WINDOW* win){
         break;
       case 115:
         stop.notify_all();
-        pressFlag = 1;
         break;
       case 114:
         if(currentMenu%3==1){
-          stwCounter = 0;
           dis.displayStw(0,0,0,0);
+          stwAccum = 0;
         }
         if(currentMenu%3==2){
           timCounter = 0;

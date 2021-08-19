@@ -23,6 +23,9 @@ private:
   int keyboardInput;
   int cursor;
 
+  int stwAccum = 0;
+  int stwTime[4]={0};
+
   int yMax, xMax;
 
   std::mutex mtx;
@@ -38,7 +41,7 @@ public:
   tm* currentTime();
 
   void clkThread();
-  void stwSubThread(int* on, int* time);
+  void stwSubThread(int* on);
   void stwThread();
   void timSubThread();
   void timThread();
