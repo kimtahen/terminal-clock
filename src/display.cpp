@@ -114,25 +114,48 @@ void Display::displayTim(int hr, int min, int sec){
   d.fgArray(sec%10, tmp);
   d.fgWindowDraw(win[7],tmp,3);
 }
+void Display::displayTim(int hr, int min, int sec, int cursor){
+  int tmp[5][3];
+  int dot[5][1] = {{0},{1},{0},{1},{0}};
+  int hrC = cursor==0 ? 1 : 3;
+  int minC = cursor==1 ? 1 : 3;
+  int secC = cursor==2 ? 1 : 3;
+
+  d.fgArray(hr/10, tmp);
+  d.fgWindowDraw(win[0],tmp, hrC);
+  d.fgArray(hr%10, tmp);
+  d.fgWindowDraw(win[1],tmp, hrC);
+  d.dotWindowDraw(win[2],dot, 3);
+  d.dotWindowDraw(win[5],dot, 3);
+  d.fgArray(min/10, tmp);
+  d.fgWindowDraw(win[3],tmp, minC);
+  d.fgArray(min%10, tmp);
+  d.fgWindowDraw(win[4],tmp, minC);
+  d.fgArray(sec/10, tmp);
+  d.fgWindowDraw(win[6],tmp,secC);
+  d.fgArray(sec%10, tmp);
+  d.fgWindowDraw(win[7],tmp,secC);
+}
+
 void Display::cursor(int index){
   int tmp[5][3]={{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
   switch(index){
     case 0:
-      d.fgWindowDraw(win[0],tmp,3);
-      d.fgWindowDraw(win[1],tmp,3);
+      d.fgWindowDraw(win[0],tmp,2);
+      d.fgWindowDraw(win[1],tmp,2);
       break;
     case 1:
-      d.fgWindowDraw(win[3],tmp,3);
-      d.fgWindowDraw(win[4],tmp,3);
+      d.fgWindowDraw(win[3],tmp,2);
+      d.fgWindowDraw(win[4],tmp,2);
       break;
     case 2:
-      d.fgWindowDraw(win[6],tmp,3);
-      d.fgWindowDraw(win[7],tmp,3);
+      d.fgWindowDraw(win[6],tmp,2);
+      d.fgWindowDraw(win[7],tmp,2);
       break;
     case 3:
-      d.fgWindowDraw(win[9],tmp,3);
-      d.fgWindowDraw(win[10],tmp,3);
-      d.fgWindowDraw(win[11],tmp,3);
+      d.fgWindowDraw(win[9],tmp,2);
+      d.fgWindowDraw(win[10],tmp,2);
+      d.fgWindowDraw(win[11],tmp,2);
       break;
   } 
 }

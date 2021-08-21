@@ -59,7 +59,7 @@ void Clock::clkThread(){
     menu.notify_all();
   }
 }
-void Clock::stwSubThread(int* on, int* time){
+void Clock::stwSubThread(int* on){
   std::unique_lock<std::mutex> lck(mtx);
 
   while(1){
@@ -68,19 +68,19 @@ void Clock::stwSubThread(int* on, int* time){
     }while(currentMenu%3!=1);
     pressFlag = 0;
 
-    while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu%3 != 1){
-      if(pressFlag == 115){
+    while(stop.wait_for(lck,std::chrono::milliseconds(100))==std::cv_status::timeout || currentMenu%3 != 1){
+      if(pressFlag == 115 && currentMenu%3 ==1){
         pressFlag = 0;
         break;
       }
 
       stwCounter += 1;
-      time[0] = stwCounter / 3600000;
-      time[1] = (stwCounter%3600000)/60000;
-      time[2] = ((stwCounter%3600000)%60000)/1000;
-      time[3] = ((stwCounter%3600000)%60000)%1000;
+      stwTime[0] = stwCounter / 3600000;
+      stwTime[1] = (stwCounter%3600000)/60000;
+      stwTime[2] = ((stwCounter%3600000)%60000)/1000;
+      stwTime[3] = ((stwCounter%3600000)%60000)%1000;
       if(*on)
-        dis.displayStw(time[0],time[1],time[2],time[3]);
+        dis.displayStw(stwTime[0],stwTime[1],stwTime[2],stwTime[3]);
     };
     pressFlag = 0;
   }
@@ -91,8 +91,7 @@ void Clock::stwThread(){
   std::condition_variable stw;
   std::unique_lock<std::mutex> lck(mtx);
   int on = 0;
-  int time[4] = {0};
-  std::thread threadStk([&](){Clock::stwSubThread(&on, time);});
+  std::thread threadStk([&](){Clock::stwSubThread(&on);});
   threadStk.detach();
 
   while(1){
@@ -102,7 +101,7 @@ void Clock::stwThread(){
     if(exitFlag==1) break;
     on = 1;
     dis.reloClock(yMax/2-3, xMax/2-21);
-    dis.displayStw(time[0],time[1],time[2],time[3]);
+    dis.displayStw(stwTime[0],stwTime[1],stwTime[2],stwTime[3]);
 
     cv.wait(lck);
     on = 0;
@@ -111,36 +110,75 @@ void Clock::stwThread(){
   }
 }
 
-void Clock::timSubThread(){
+void Clock::timSubThread(int* on, int* time){
+  std::unique_lock<std::mutex> lck(mtx);
+  int setTime[4]= {0};
+  resumeFlag = 0;
+
+  while(1){
+    do{
+      stop.wait(lck);
+    }while(currentMenu%3!=2);
+
+    if(!resumeFlag){
+      for(int i = 0; i<4; i++){
+        setTime[i] = timTime[i];
+      }
+      timCounter = timTime[0]*3600 + timTime[1]*60 + timTime[2];
+      resumeFlag = 1;
+    }
+
+    do{
+
+      if(timCounter == 0) {
+        resumeFlag = 0;
+        for(int i = 0; i<4; i++){
+          timTime[i] = setTime[i];
+        }
+        dis.displayTim(timTime[0],timTime[1],timTime[2],cursor);
+        break;
+      }
+
+      timCounter -= 1;
+      timTime[0] = timCounter / 3600;
+      timTime[1] = (timCounter%3600)/60;
+      timTime[2] = ((timCounter%3600)%60);
+
+      if(*on)
+        dis.displayTim(timTime[0],timTime[1],timTime[2]);
+    }while(stop.wait_for(lck,std::chrono::seconds(1))==std::cv_status::timeout || currentMenu%3 != 2);
+  }
 
 
 }
 
 void Clock::timThread(){
   std::unique_lock<std::mutex> lck(mtx);
-  int time[3]={0};
+  int time[4]={0};
+  int on = 0;
+  std::thread threadTim([&](){Clock::timSubThread(&on, time);});
+  threadTim.detach();
   while(1){
     while(currentMenu%3!=2 && exitFlag != 1){
       menu.wait(lck);
     }
     if(exitFlag == 1) break;
 
+    on = 1;
+
     dis.reloClock(yMax/2-3, xMax/2-14);
-    dis.displayTim(time[0],time[1],time[2]);
+    dis.displayTim(timTime[0],timTime[1],timTime[2]);
 
-    do{
-      dis.displayTim(time[0],time[1],time[2]);
-      if(cv.wait_for(lck,std::chrono::milliseconds(100))!=std::cv_status::timeout){
+    for(;;){
+      if(!timCounter)
+        dis.displayTim(timTime[0],timTime[1],timTime[2],cursor);
+      cv.wait(lck);
+      //synchronization using cv
+      if(currentMenu%3!=2 || exitFlag ==1){
         break;
       }
-      dis.cursor(cursor);
-      if(cv.wait_for(lck,std::chrono::milliseconds(100))!=std::cv_status::timeout){
-        break;
-      }
-    }while(1);
-
-
-
+    }
+    on = 0;
     dis.clr();
 
     menu.notify_all();
@@ -159,32 +197,49 @@ void Clock::asyncInputThread(WINDOW* win){
         break;
       case 115:
         stop.notify_all();
-        pressFlag = 1;
         break;
       case 114:
         if(currentMenu%3==1){
           stwCounter = 0;
+          for(int i = 0; i<4; i++)
+            stwTime[i] = 0;
           dis.displayStw(0,0,0,0);
         }
         if(currentMenu%3==2){
           timCounter = 0;
-          dis.displayTim(0,0,0);
+          stop.notify_all();
+
         }
         break;
       case 109:
         cursor = (cursor+1)%3;
+        cv.notify_all();
         break;
-      //up
+
       case 107:
-        menu.notify_all();
+        if(timTime[cursor]==60){
+          timTime[cursor] = 0;
+        }else{
+          timTime[cursor]++;
+        }
+        cv.notify_all();
+
         break;
-      //down
       case 106:
+        if(timTime[cursor]==0){
+          timTime[cursor] = 60;
+        }else{
+          timTime[cursor]--;
+        }
+        cv.notify_all();
+
         break;
       //right
       case 108:
         currentMenu++;
+
         cv.notify_all();
+
         break;
       //left
       case 104:

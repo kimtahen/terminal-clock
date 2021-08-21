@@ -15,11 +15,15 @@ private:
   std::condition_variable menu;
   std::condition_variable stop;
   std::condition_variable reset;
+  std::condition_variable curs;
   int currentMenu;
   int exitFlag;
   int pressFlag;
+  int resumeFlag;
   int timCounter;
   int stwCounter;
+  int stwTime[4]={0};
+  int timTime[4]={0};
   int keyboardInput;
   int cursor;
 
@@ -38,9 +42,9 @@ public:
   tm* currentTime();
 
   void clkThread();
-  void stwSubThread(int* on, int* time);
+  void stwSubThread(int* on);
   void stwThread();
-  void timSubThread();
+  void timSubThread(int* on, int* time);
   void timThread();
 
   void asyncInputThread(WINDOW* win);
