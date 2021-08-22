@@ -23,8 +23,8 @@ public:
   void displayClk(tm* timeinfo, int prevhour, int prevmin, int prevsec);
 
   void displayStw(int hr, int min, int sec, int dec);
-  void displayTim(int hr, int min, int sec);
-  void displayTim(int hr, int min, int sec, int cursor);
+  void displayTim(int hr, int min, int sec, int dec);
+  void displayTim(int hr, int min, int sec, int dec, int cursor);
   void cursor(int index);
 
 

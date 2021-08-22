@@ -2,6 +2,7 @@
 #define __clock_h__
 
 #include <iostream>
+#include <condition_variable>
 #include <ncurses.h>
 #include <mutex>
 #include "display.hpp"
@@ -21,7 +22,9 @@ private:
   int pressFlag;
   int resumeFlag;
   int timCounter;
+  int timPrevCounter;
   int stwCounter;
+  int stwPrevCounter;
   int stwTime[4]={0};
   int timTime[4]={0};
   int keyboardInput;
