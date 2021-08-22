@@ -17,6 +17,7 @@ private:
   std::condition_variable stop;
   std::condition_variable reset;
   std::condition_variable curs;
+  int velocity;
   int currentMenu;
   int exitFlag;
   int pressFlag;
@@ -40,7 +41,7 @@ private:
   int prevhour, prevmin, prevsec;
 
 public:
-  Clock();
+  Clock(int velocity);
   void update();
   tm* currentTime();
 

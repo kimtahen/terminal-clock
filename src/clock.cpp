@@ -8,7 +8,8 @@
 #include "../lib/includes/display.hpp"
 
 #define NUM_FG 6
-Clock::Clock(){
+Clock::Clock(int velocity){
+  this->velocity = velocity;
   time(&_time);
   timeinfo = localtime(&_time);
   prevhour = timeinfo->tm_hour;
@@ -73,7 +74,7 @@ void Clock::stwSubThread(int* on){
 
     pressFlag = 0;
 
-    while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu!=1 && exitFlag!=1){
+    while(stop.wait_for(lck,std::chrono::milliseconds(velocity))==std::cv_status::timeout || currentMenu!=1 && exitFlag!=1){
       if(pressFlag == 115 && currentMenu%3 ==1){
         pressFlag = 0;
         break;
@@ -164,7 +165,7 @@ void Clock::timSubThread(int* on, int* time){
 
       if(*on)
         dis.displayTim(timTime[0],timTime[1],timTime[2],timTime[3]);
-    }while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu%3 != 2 && exitFlag !=1);
+    }while(stop.wait_for(lck,std::chrono::milliseconds(velocity))==std::cv_status::timeout || currentMenu%3 != 2 && exitFlag !=1);
     if(exitFlag==1) break;
   }
 

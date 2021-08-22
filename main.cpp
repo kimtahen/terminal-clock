@@ -24,7 +24,23 @@ std::condition_variable menu;
 //buttons for stopwatch
 std::condition_variable stop;
 std::condition_variable reset;
-int main(){
+int main(int argc, char * const * argv){
+  int velocity = 1;
+  int op;
+  while((op=getopt(argc,argv,"v:"))!=-1){
+    switch(op){
+      case 'v':
+        velocity = std::stoi(optarg);
+        if(velocity < 1 || velocity >1000){
+          std::cout<<"invalid option"<<std::endl;
+          return -1;
+        }
+        break;
+      case '?':
+        std::cout<<"Unknown flag : "<<optopt<<std::endl;
+        break;
+    }
+  }
   initscr();
   noecho();
   start_color();
@@ -40,7 +56,7 @@ int main(){
 
 
   //clock start
-  Clock clock1;
+  Clock clock1(velocity);
   clock1.tickCurrentTime();
   endwin();
 
