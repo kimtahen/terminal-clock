@@ -65,14 +65,16 @@ void Clock::stwSubThread(int* on){
   while(1){
     do{
       stop.wait(lck);
-    }while(currentMenu%3!=1);
+    }while(currentMenu%3!=1&&exitFlag!=1);
+    
     pressFlag = 0;
 
-    while(stop.wait_for(lck,std::chrono::milliseconds(100))==std::cv_status::timeout || currentMenu%3 != 1){
+    while(stop.wait_for(lck,std::chrono::milliseconds(1))==std::cv_status::timeout || currentMenu!=1 && exitFlag!=1){
       if(pressFlag == 115 && currentMenu%3 ==1){
         pressFlag = 0;
         break;
       }
+	if(exitFlag==1) break;
 
       stwCounter += 1;
       stwTime[0] = stwCounter / 3600000;
@@ -83,6 +85,7 @@ void Clock::stwSubThread(int* on){
         dis.displayStw(stwTime[0],stwTime[1],stwTime[2],stwTime[3]);
     };
     pressFlag = 0;
+	if(exitFlag==1) break;
   }
 }
 
@@ -91,8 +94,8 @@ void Clock::stwThread(){
   std::condition_variable stw;
   std::unique_lock<std::mutex> lck(mtx);
   int on = 0;
-  std::thread threadStk([&](){Clock::stwSubThread(&on);});
-  threadStk.detach();
+  std::thread threadStw([&](){Clock::stwSubThread(&on);});
+  threadStw.detach();
 
   while(1){
     while(currentMenu%3!=1 && exitFlag!=1){
@@ -118,7 +121,7 @@ void Clock::timSubThread(int* on, int* time){
   while(1){
     do{
       stop.wait(lck);
-    }while(currentMenu%3!=2);
+    }while(currentMenu%3!=2&&exitFlag!=1);
 
     if(!resumeFlag){
       for(int i = 0; i<4; i++){
@@ -129,6 +132,7 @@ void Clock::timSubThread(int* on, int* time){
     }
 
     do{
+	if(exitFlag==1) break;
 
       if(timCounter == 0) {
         resumeFlag = 0;
@@ -146,7 +150,8 @@ void Clock::timSubThread(int* on, int* time){
 
       if(*on)
         dis.displayTim(timTime[0],timTime[1],timTime[2]);
-    }while(stop.wait_for(lck,std::chrono::seconds(1))==std::cv_status::timeout || currentMenu%3 != 2);
+    }while(stop.wait_for(lck,std::chrono::seconds(1))==std::cv_status::timeout || currentMenu%3 != 2 && exitFlag !=1);
+      if(exitFlag==1) break;
   }
 
 
@@ -194,6 +199,8 @@ void Clock::asyncInputThread(WINDOW* win){
       case 120:
         exitFlag = 1;
         cv.notify_all();
+	stop.notify_all();
+	menu.notify_all();
         break;
       case 115:
         stop.notify_all();
@@ -247,6 +254,9 @@ void Clock::asyncInputThread(WINDOW* win){
         cv.notify_all();
         break;
     }
+    if(keyboardInput==120){
+	break;
+    }
   }
 
   return;
@@ -260,5 +270,5 @@ void Clock::tickCurrentTime(){
   threadClk.join();
   threadStk.join();
   threadTim.join();
-  threadKey.detach();
+  threadKey.join();
 }

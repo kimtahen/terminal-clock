@@ -3,7 +3,7 @@ HEADERS = $(wildcard lib/includes/*.h)
 
 OBJ = ${CPP_SOURCES: .c=.o}
 
-CPPFLAGS = -l ncurses
+CPPFLAGS = -l ncurses -l pthread
 
 INCLUDES = -I lib
 
@@ -13,10 +13,10 @@ run : main.out
 	./main.out
 
 main.out : ${OBJ}
-	g++ ${CPPFLAGS} ${INCLUDES} $^ -o $@
+	g++ $^ -o $@ ${INCLUDES} ${CPPFLAGS}
 
 %.o : %.cpp
-	g++ ${CPPFLAGS} ${INCLUDES} $< -o $@
+	g++ $< -o $@ ${INCLUDES} ${CPPFLAGS}
 
 clean :
 	rm -rf *.o *.out
