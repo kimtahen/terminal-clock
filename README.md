@@ -17,9 +17,16 @@ make
 ```
 make clean
 ```
+## How to use
+* 'h' and 'l' key for switching functions
+* 's' and 'r' key for 'stop/resume' and 'reset'
+* 'm' key for switching among hour, minute and seconds in timer function
+* 'j' and 'k' key for 'decrease' and 'increase' numbers in timer function
 
 ## Addtional information
-This program uses linux threads, so default refresh interval setting of 1 milliseconds for stopwatch and timer can use quite long cpu time. By using -v flag, the refresh interval can be adjusted. 1 is the highest and 1000 is the lowest (1 milliseconds, 1000 milliseconds = 1 seconds)
+* This program uses linux threads, so default refresh interval setting of 1 milliseconds for stopwatch and timer can use quite long cpu time. 
+* By using -v flag, the refresh interval can be adjusted. 
+* 1 is the highest and 1000 is the lowest (1 milliseconds, 1000 milliseconds = 1 seconds)
 
 # Snapshot
 ![clock](https://user-images.githubusercontent.com/52111798/130354601-c6fe95f5-3a36-4190-a947-c2fc0eff9b87.jpg)
