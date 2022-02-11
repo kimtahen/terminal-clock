@@ -4,6 +4,12 @@ Digital clock with stopwatch and timer function
 * thread library used for switching functions
 
 # Documentation
+## Dependencies
+this program needs ncurses
+```
+sudo apt-get install libncurses5-dev libncursesw5-dev
+```
+
 ## How to run
 1. build
 ```make
